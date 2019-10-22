@@ -1,13 +1,9 @@
-# yubikey
-Yubikey based Google Cloud Credentials
-
-
-Google Cloud Credentials source for Service Account Credentials embedded within a Yubikey PIV.
 
 ## YubiKeyTokenSource
 
->> **WARNING:**  `YubiKeyTokenSource` is highly experimental.  This repo is NOT supported by Google
+Google Cloud Credentials source for Service Account keys embedded within a Yubikey PIV.
 
+>> **WARNING:**  `YubiKeyTokenSource` is highly experimental.  This repo is NOT supported by Google
 
 `google/oauth2/YubiKeyTokenSource` is a variation of `google/oauth2/JWTAccessTokenSourceFromJSON` where the private key used to sign the JWT is embedded within a [PIV-enabled YubiKey](https://developers.yubico.com/PIV/Introduction/YubiKey_and_PIV.html).
 
@@ -33,13 +29,8 @@ This repo is under Apache License but specifically this component is MIT License
 
 	On any other system, install supporting libraries for both components listed above.  
 
-	Also install the following to allow inspection of the key:
-	```
-	sudo apt-get install libpcsclite-dev scdaemon build-essential libykpiv-dev
-	```
-
-	Insert the YubiKey and verify you've got the correct type (YubiKey Neo, 4,5):
-
+	Check Yubikey is plugged in
+	
 	```bash
 	$ lsusb  | grep -i yubikey
 	Bus 001 Device 013: ID 1050:0111 Yubico.com Yubikey NEO(-N) OTP+CCID
@@ -106,7 +97,25 @@ This repo is under Apache License but specifically this component is MIT License
 
 4. Install `libkpiv-dev` on target system
 
-	On any system you wish to use this library, you must first install `libkpiv-dev` (eg `$ sudo apt-get install libcupti-dev`)
+	On any system you wish to use this library, you must first install `libkpiv-dev`:
+
+	Requires the latest `libykpiv-dev: 1.5.0+`  [issue#16](https://github.com/paultag/go-ykpiv/issues/16). 
+	
+	* [Ubuntu install](https://support.yubico.com/support/solutions/articles/15000010964-enabling-the-yubico-ppa-on-ubuntu)) 
+	```bash
+	sudo add-apt-repository ppa:yubico/stable && sudo apt-get update
+
+    sudo apt-get install libykpiv-dev
+	```
+
+	* [Debian Install](https://packages.debian.org/search?keywords=yubico-piv-tool).  Its currently only on [debian sid](https://packages.debian.org/sid/libykpiv-dev)
+
+	Insert the YubiKey and verify its detected:
+
+	```bash
+	$ lsusb  | grep -i yubikey
+	Bus 001 Device 013: ID 1050:0111 Yubico.com Yubikey NEO(-N) OTP+CCID
+	```
 
 5. Use TokensSource
 

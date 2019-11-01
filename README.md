@@ -117,7 +117,13 @@ This repo is under Apache License but specifically this component is MIT License
 	Bus 001 Device 013: ID 1050:0111 Yubico.com Yubikey NEO(-N) OTP+CCID
 	```
 
-5. Use TokensSource
+5. Use TokenSource
+
+
+	After the key is embedded into the yubikey, you can *DELETE* any reference to `private.pem` or the `.p12` file (the private key now exists protected by the physical access to the yubikey).
+
+	The YubiKey based `TokenSource` can now be used to access a GCP resource using either a plain HTTPClient or _native_ GCP library (`google-cloud-pubsub`)!!
+
 
 	```golang
 	package main
@@ -125,8 +131,13 @@ This repo is under Apache License but specifically this component is MIT License
 	import (
 		"log"
 		"net/http"
+		"cloud.google.com/go/pubsub"
+
 		"golang.org/x/oauth2"
 		sal "github.com/salrashid123/yubikey/google"
+
+		"google.golang.org/api/iterator"
+		"google.golang.org/api/option"
 	)
 
 	func main() {
@@ -155,6 +166,28 @@ This repo is under Apache License but specifically this component is MIT License
 			log.Fatalf("Unable to get Topics %v", err)
 		}
 		log.Printf("Response: %v", resp.Status)
+
+
+		// Using google-cloud library
+
+		ctx := context.Background()
+		pubsubClient, err := pubsub.NewClient(ctx, proj, option.WithTokenSource(yubiKeyTokenSource))
+		if err != nil {
+			log.Fatalf("Could not create pubsub Client: %v", err)
+		}
+
+		it := pubsubClient.Topics(ctx)
+		for {
+			topic, err := it.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Unable to iterate topics %v", err)
+			}
+			log.Printf("Topic: %s", topic.ID())
+		}
+
 	```
 
 	Note:  by default the Yubikey allows for 3 PIN attempts before going into lockout.  To unlock, see  [PIN and Management Key](https://developers.yubico.com/yubikey-piv-manager/PIN_and_Management_Key.html)

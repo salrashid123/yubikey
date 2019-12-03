@@ -55,7 +55,7 @@ type yubiKeyTokenSource struct {
 //      Find the keyId associated with the service account by running:
 //      `gcloud iam service-accounts keys list --iam-account=<email>``
 //
-func YubiKeyTokenSource(tokenConfig YubiKeyTokenConfig) (oauth2.TokenSource, error) {
+func YubiKeyTokenSource(tokenConfig *YubiKeyTokenConfig) (oauth2.TokenSource, error) {
 
 	if tokenConfig.Email == "" || tokenConfig.Audience == "" || tokenConfig.Pin == "" {
 		return nil, fmt.Errorf("salrashid123/x/oauth2/google: YubiKeyTokenConfig.Email, Audience and Pin cannot be nil")

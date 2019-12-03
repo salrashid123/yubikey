@@ -142,7 +142,7 @@ This repo is under Apache License but specifically this component is MIT License
 
 	func main() {
 		yubiKeyTokenSource, err := sal.YubiKeyTokenSource(
-			sal.YubiKeyTokenConfig{
+			&sal.YubiKeyTokenConfig{
 				Email:    "svcAccount@project.iam.gserviceaccount.com",
 				Audience: "https://pubsub.googleapis.com/google.pubsub.v1.Publisher",
 				Pin:      "123456",

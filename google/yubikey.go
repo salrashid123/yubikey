@@ -7,6 +7,7 @@ package google
 import (
 	"crypto"
 	"fmt"
+	"strings"
 	"time"
 
 	"crypto/rand"
@@ -17,7 +18,8 @@ import (
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jws"
-	"pault.ag/go/ykpiv"
+
+	"github.com/go-piv/piv-go/piv"
 )
 
 // YubiKeyTokenConfig parameters to start Credential based off of TPM RSA Private Key.
@@ -77,19 +79,36 @@ func (ts *yubiKeyTokenSource) Token() (*oauth2.Token, error) {
 
 	var strPointer = new(string)
 	*strPointer = ts.pin
-	yk, err := ykpiv.New(ykpiv.Options{
-		Verbose: true,
-		//Reader:  "Yubico Yubikey NEO OTP+CCID 00 00",
-		PIN: strPointer,
-	})
+
+	cards, err := piv.Cards()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open yubikey %v", err)
 	}
+
+	// Find a YubiKey and open the reader.
+	var yk *piv.YubiKey
+
+	for _, card := range cards {
+		if strings.Contains(strings.ToLower(card), "yubikey") {
+			if yk, err = piv.Open(card); err != nil {
+				return nil, fmt.Errorf("Could not find yubikey:  %v", err)
+			}
+			break
+		}
+	}
+	if yk == nil {
+		return nil, fmt.Errorf("Yubikey not found Please make sure the key is inserted %v", err)
+	}
 	defer yk.Close()
 
-	s, err := yk.Slot(ykpiv.Signature)
+	auth := piv.KeyAuth{PIN: ts.pin} //piv.DefaultPIN
+	cert, err := yk.Certificate(piv.SlotSignature)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to acquire slot on YubiKey 0x9c: ,%v", err)
+		return nil, fmt.Errorf("Unable to load certificate not found %v", err)
+	}
+	priv, err := yk.PrivateKey(piv.SlotSignature, cert.PublicKey, auth)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to load privateKey %v", err)
 	}
 
 	rng := rand.Reader
@@ -120,10 +139,12 @@ func (ts *yubiKeyTokenSource) Token() (*oauth2.Token, error) {
 	hasher := sha256.New()
 	_, err = hasher.Write(message)
 	hashed := hasher.Sum(message[:0])
-	err = yk.Login()
-	if err != nil {
-		return nil, fmt.Errorf("unable to login to YubiKey %v", err)
+
+	s, ok := priv.(crypto.Signer)
+	if !ok {
+		return nil, fmt.Errorf("expected private key to implement crypto.Signer")
 	}
+
 	signature, err := s.Sign(rng, hashed, crypto.SHA256)
 	if err != nil {
 		return nil, fmt.Errorf("Error from signing from YubiKey: %v\n", err)

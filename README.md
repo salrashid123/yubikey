@@ -9,9 +9,13 @@ Google Cloud Credentials source for Service Account keys embedded within a Yubik
 
 The private key in raw form _not_ exportable or exposed to the filesystem or any process other than through the Yubikey interface.  This token source uses the yubikey alone to `sign` the JWT which is then used to access a Google Cloud API.  
 
-This library uses [go-ykpiv](https://github.com/paultag/go-ykpiv) which inturn uses C extensions to access the Yubikek provided by `libkpiv-dev`.  You must have `libkpiv-dev` the target system where this TokenSource will be used.
+This library uses [go-piv](https://github.com/go-piv/piv-go) which is a go-native interface to yubikey (vs wrapper around C). To use this library, install [PSCS Lite libpcsclite-dev ](https://github.com/go-piv/piv-go#installation)
 
-This repo is under Apache License but specifically this component is MIT License per [go-ykpiv](https://github.com/paultag/go-ykpiv/blob/master/LICENSE).
+The default installation steps here first creates a service account private key that will get imported into the yubikey.  It is expected that you discard/destroy the private key at that point so that the only copy is on the Yubikey.
+
+However, the better way is to only generate the private key on the Yubikey and then export its CSR.  From there, use your own CSR to sign it to generate a cert.  Import the cert back into the yubikey at slot 9c.   Once all that is done, you can import the signed
+certificate back into GCP and associate that with a service account.  For more information on the last part, see [Uploading public keys for service accounts](https://cloud.google.com/iam/docs/creating-managing-service-account-keys#uploading).   This repo does not show these steps and just takes the lazy way out.
+
 
 ### Usage
 
@@ -95,21 +99,18 @@ This repo is under Apache License but specifically this component is MIT License
 	Successful RSA verification.
 	```
 
-4. Install `libkpiv-dev` on target system
+>> Alternatively, you can generate a private on the Yubkiey, gen a CSR, sign it with your own CA, then associate it with the service account 
 
-	On any system you wish to use this library, you must first install `libkpiv-dev`:
+![images/gencsr.png](images/gencsr.png)
 
-	Requires the latest `libykpiv-dev: 1.5.0+`  [issue#16](https://github.com/paultag/go-ykpiv/issues/16). 
-	
-	* [Ubuntu install](https://support.yubico.com/support/solutions/articles/15000010964-enabling-the-yubico-ppa-on-ubuntu)) 
+4. Install `libpcsclite-dev` on target system
+
+	On any system you wish to use this library, you must first install `libpcsclite-dev`:
+
 	```bash
-	sudo add-apt-repository ppa:yubico/stable && sudo apt-get update
-
-    sudo apt-get install libykpiv-dev
+    sudo apt-get install libpcsclite-dev
 	```
-
-	* [Debian Install](https://packages.debian.org/search?keywords=yubico-piv-tool).  Its currently only on [debian sid](https://packages.debian.org/sid/libykpiv-dev)
-
+	
 	Insert the YubiKey and verify its detected:
 
 	```bash

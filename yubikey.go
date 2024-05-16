@@ -1,8 +1,4 @@
-// Copyright 2019 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package google
+package yubikey
 
 import (
 	"crypto"
@@ -47,16 +43,15 @@ type yubiKeyTokenSource struct {
 // https://medium.com/google-cloud/faster-serviceaccount-authentication-for-google-cloud-platform-apis-f1355abc14b2
 // https://godoc.org/golang.org/x/oauth2/google#JWTAccessTokenSourceFromJSON
 //
-//  Email (string): The service account to get the token for.
-//  Audience (string): The audience representing the service the token is valid for.
-//      The audience must match the name of the Service the token is intended for.  See
-//      documentation links above.
-//      (eg. https://pubsub.googleapis.com/google.pubsub.v1.Publisher)
-//  Pin (string): The PIN for the YubiKey.
-//  KeyId (string): (optional) The private KeyID for the service account key saved to the TPM.
-//      Find the keyId associated with the service account by running:
-//      `gcloud iam service-accounts keys list --iam-account=<email>``
-//
+//	Email (string): The service account to get the token for.
+//	Audience (string): The audience representing the service the token is valid for.
+//	    The audience must match the name of the Service the token is intended for.  See
+//	    documentation links above.
+//	    (eg. https://pubsub.googleapis.com/google.pubsub.v1.Publisher)
+//	Pin (string): The PIN for the YubiKey.
+//	KeyId (string): (optional) The private KeyID for the service account key saved to the TPM.
+//	    Find the keyId associated with the service account by running:
+//	    `gcloud iam service-accounts keys list --iam-account=<email>``
 func YubiKeyTokenSource(tokenConfig *YubiKeyTokenConfig) (oauth2.TokenSource, error) {
 
 	if tokenConfig.Email == "" || tokenConfig.Audience == "" || tokenConfig.Pin == "" {

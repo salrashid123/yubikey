@@ -5,9 +5,6 @@ Google Cloud Credentials source for Service Account keys embedded within a Yubik
 
 >> **WARNING:**  `YubiKeyTokenSource` is highly experimental.  This repo is NOT supported by Google
 
-`google/oauth2/YubiKeyTokenSource` is a variation of `google/oauth2/JWTAccessTokenSourceFromJSON` where the private key used to sign the JWT is embedded within a [PIV-enabled YubiKey](https://developers.yubico.com/PIV/Introduction/YubiKey_and_PIV.html).
-
-The private key in raw form _not_ exportable or exposed to the filesystem or any process other than through the Yubikey interface.  This token source uses the yubikey alone to `sign` the JWT which is then used to access a Google Cloud API.  
 
 This library uses [go-piv](https://github.com/go-piv/piv-go) which is a go-native interface to yubikey (vs wrapper around C). To use this library, install [PSCS Lite libpcsclite-dev ](https://github.com/go-piv/piv-go#installation)
 
@@ -135,7 +132,7 @@ certificate back into GCP and associate that with a service account.  For more i
 		"cloud.google.com/go/pubsub"
 
 		"golang.org/x/oauth2"
-		sal "github.com/salrashid123/yubikey/google"
+		sal "github.com/salrashid123/yubikey"
 
 		"google.golang.org/api/iterator"
 		"google.golang.org/api/option"
